@@ -3,71 +3,83 @@ import React, { Component } from 'react';
 export default class Recorder extends Component {
   constructor() {
     super();
-  }
-
-  visualize(stream, audioCtx, canvas) {
-    var source = audioCtx.createMediaStreamSource(stream);
-
-    var analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 2048;
-    var bufferLength = analyser.frequencyBinCount;
-    var dataArray = new Uint8Array(bufferLength);
-
-    source.connect(analyser);
-    //analyser.connect(audioCtx.destination);
-
-    const WIDTH = canvas.width;
-    const HEIGHT = canvas.height;
-
-    draw()
-
-    function draw() {
-      var canvasCtx = canvas.getContext("2d");
-
-      requestAnimationFrame(draw);
-
-      analyser.getByteTimeDomainData(dataArray);
-
-      canvasCtx.fillStyle = 'rgb(200, 200, 200)';
-      canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-
-      canvasCtx.lineWidth = 2;
-      canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-
-      canvasCtx.beginPath();
-
-      var sliceWidth = WIDTH * 1.0 / bufferLength;
-      var x = 0;
-
-
-      for(var i = 0; i < bufferLength; i++) {
-
-        var v = dataArray[i] / 128.0;
-        var y = v * HEIGHT/2;
-
-        if(i === 0) {
-          canvasCtx.moveTo(x, y);
-        } else {
-          canvasCtx.lineTo(x, y);
-        }
-
-        x += sliceWidth;
-      }
-
-      canvasCtx.lineTo(canvas.width, canvas.height/2);
-      canvasCtx.stroke();
-
-    }
-  }
-
-  componentDidMount() {
     navigator.getUserMedia = ( navigator.getUserMedia ||
                            navigator.webkitGetUserMedia ||
                            navigator.mozGetUserMedia ||
                            navigator.msGetUserMedia);
 
-    const canvas = this.refs.canvas;
-    var audioCtx = new (window.AudioContext || webkitAudioContext)();
+    const audioCtx = new (window.AudioContext || webkitAudioContext)();
+    const analyser = audioCtx.createAnalyser();
+
+    this.state = {
+      audioCtx: audioCtx,
+      analyser: analyser
+    }
+
+    this.draw = this.draw.bind(this);
+    this.visualize = this.visualize.bind(this);
+  }
+
+  draw() {
+    var canvasCtx = this.state.canvas.getContext("2d");
+    var dataArray = new Uint8Array(this.state.analyser.frequencyBinCount);
+    var bufferLength = this.state.analyser.frequencyBinCount;
+    const WIDTH = this.state.canvas.width;
+    const HEIGHT = this.state.canvas.height;
+
+    requestAnimationFrame(this.draw);
+
+    this.state.analyser.getByteTimeDomainData(dataArray);
+
+    canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    canvasCtx.lineWidth = 2;
+    canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+
+    canvasCtx.beginPath();
+
+    var sliceWidth = WIDTH * 1.0 / bufferLength;
+    var x = 0;
+
+
+    for(var i = 0; i < bufferLength; i++) {
+
+      var v = dataArray[i] / 128.0;
+      var y = v * HEIGHT/2;
+
+      if(i === 0) {
+        canvasCtx.moveTo(x, y);
+      } else {
+        canvasCtx.lineTo(x, y);
+      }
+
+      x += sliceWidth;
+    }
+
+    canvasCtx.lineTo(this.state.canvas.width, this.state.canvas.height/2);
+    canvasCtx.stroke();
+
+  }
+
+  visualize(stream) {
+    var source = this.state.audioCtx.createMediaStreamSource(stream);
+    this.state.analyser.fftSize = 2048;
+    var bufferLength = this.state.analyser.frequencyBinCount;
+    var dataArray = new Uint8Array(bufferLength);
+
+    source.connect(this.state.analyser);
+    //analyser.connect(this.state.audioCtx.destination);
+    
+    this.draw();
+  }
+
+  componentDidMount() {
+    this.setState({
+      canvas: this.refs.canvas
+    });
+
+    console.log('didmount', this.refs.canvas);
 
     if (navigator.getUserMedia) {
       console.log('getUserMedia supported.');
@@ -77,8 +89,7 @@ export default class Recorder extends Component {
 
       var onSuccess = function(stream) {
         var mediaRecorder = new MediaRecorder(stream);
-
-        this.visualize(stream, audioCtx, canvas);
+        this.visualize(stream);
       }
 
       var onError = function(err) {
