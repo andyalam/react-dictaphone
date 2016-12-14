@@ -111,22 +111,22 @@ export default class Recorder extends Component {
     this.state.mediaRecorder.start();
     console.log(this.state.mediaRecorder.state);
     console.log("recorder started");
-    record.style.background = "red";
+    this.refs.record.style.background = "red";
 
-    stop.disabled = false;
-    record.disabled = true;
+    this.refs.stop.disabled = false;
+    this.refs.record.disabled = true;
   }
 
   stopOnClick() {
     this.state.mediaRecorder.stop();
     console.log(this.state.mediaRecorder.state);
     console.log("recorder stopped");
-    record.style.background = "";
-    record.style.color = "";
+    this.refs.record.style.background = "";
+    this.refs.record.style.color = "";
     // mediaRecorder.requestData();
 
-    stop.disabled = true;
-    record.disabled = false;
+    this.refs.stop.disabled = true;
+    this.refs.record.disabled = false;
   }
 
   mediaRecorderOnStop() {
@@ -153,11 +153,10 @@ export default class Recorder extends Component {
     clipContainer.appendChild(audio);
     clipContainer.appendChild(clipLabel);
     clipContainer.appendChild(deleteButton);
-    soundClips.appendChild(clipContainer);
+    this.refs.soundClips.appendChild(clipContainer);
 
     audio.controls = true;
     var blob = new Blob(this.state.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-    //chunks = [];
     this.setState({
       chunks: []
     });
@@ -182,9 +181,8 @@ export default class Recorder extends Component {
   }
 
   mediaRecorderOnDataAvailable(e) {
-    //chunks.push(e.data);
     this.setState({
-      chunks: [...chunks, e.data]
+      chunks: [...this.state.chunks, e.data]
     })
   }
 
@@ -194,8 +192,11 @@ export default class Recorder extends Component {
         <canvas ref="canvas" className="visualizer"></canvas>
         <div id="buttons">
           <button ref="record" className="record" onClick={this.recordOnClick} >Record</button>
-          <button className="stop" onClick={this.stopOnClick} >Stop</button>
+          <button ref="stop" className="stop" onClick={this.stopOnClick} >Stop</button>
         </div>
+        <section ref="soundClips">
+
+        </section>
       </section>
     );
   }
