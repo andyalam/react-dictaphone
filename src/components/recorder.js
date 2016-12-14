@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { createClip } from '../actions/index';
 
-export default class Recorder extends Component {
+class Recorder extends Component {
   constructor() {
     super();
     navigator.getUserMedia = ( navigator.getUserMedia ||
@@ -133,51 +135,16 @@ export default class Recorder extends Component {
     console.log("data available after MediaRecorder.stop() called.");
 
     var clipName = prompt('Enter a name for your sound clip?','My unnamed clip');
-    console.log(clipName);
-    var clipContainer = document.createElement('article');
-    var clipLabel = document.createElement('p');
-    var audio = document.createElement('audio');
-    var deleteButton = document.createElement('button');
 
-    clipContainer.classList.add('clip');
-    audio.setAttribute('controls', '');
-    deleteButton.textContent = 'Delete';
-    deleteButton.className = 'delete';
+    const blob = new Blob(this.state.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+    this.props.createClip(blob);
 
-    if(clipName === null) {
-      clipLabel.textContent = 'My unnamed clip';
-    } else {
-      clipLabel.textContent = clipName;
-    }
-
-    clipContainer.appendChild(audio);
-    clipContainer.appendChild(clipLabel);
-    clipContainer.appendChild(deleteButton);
-    this.refs.soundClips.appendChild(clipContainer);
-
-    audio.controls = true;
-    var blob = new Blob(this.state.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+    // reset chunks
     this.setState({
       chunks: []
     });
-    var audioURL = window.URL.createObjectURL(blob);
-    audio.src = audioURL;
+
     console.log("recorder stopped");
-
-    deleteButton.onclick = function(e) {
-      evtTgt = e.target;
-      evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
-    }
-
-    clipLabel.onclick = function() {
-      var existingName = clipLabel.textContent;
-      var newClipName = prompt('Enter a new name for your sound clip?');
-      if(newClipName === null) {
-        clipLabel.textContent = existingName;
-      } else {
-        clipLabel.textContent = newClipName;
-      }
-    }
   }
 
   mediaRecorderOnDataAvailable(e) {
@@ -201,3 +168,6 @@ export default class Recorder extends Component {
     );
   }
 }
+
+
+export default connect(null, { createClip })(Recorder);
