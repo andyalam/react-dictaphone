@@ -13,11 +13,16 @@ export default class Recorder extends Component {
 
     this.state = {
       audioCtx: audioCtx,
-      analyser: analyser
+      analyser: analyser,
+      chunks: []
     }
 
     this.draw = this.draw.bind(this);
     this.visualize = this.visualize.bind(this);
+    this.recordOnClick = this.recordOnClick.bind(this);
+    this.stopOnClick = this.stopOnClick.bind(this);
+    this.mediaRecorderOnStop = this.mediaRecorderOnStop.bind(this);
+    this.mediaRecorderOnDataAvailable = this.mediaRecorderOnDataAvailable.bind(this);
   }
 
   draw() {
@@ -70,7 +75,7 @@ export default class Recorder extends Component {
 
     source.connect(this.state.analyser);
     //analyser.connect(this.state.audioCtx.destination);
-    
+
     this.draw();
   }
 
@@ -79,16 +84,16 @@ export default class Recorder extends Component {
       canvas: this.refs.canvas
     });
 
-    console.log('didmount', this.refs.canvas);
-
     if (navigator.getUserMedia) {
       console.log('getUserMedia supported.');
 
       var constraints = { audio: true };
-      var chunks = [];
 
       var onSuccess = function(stream) {
-        var mediaRecorder = new MediaRecorder(stream);
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.onstop = this.mediaRecorderOnStop;
+        mediaRecorder.ondataavailable = this.mediaRecorderOnDataAvailable;
+        this.setState({ mediaRecorder });
         this.visualize(stream);
       }
 
@@ -103,8 +108,8 @@ export default class Recorder extends Component {
   }
 
   recordOnClick() {
-    mediaRecorder.start();
-    console.log(mediaRecorder.state);
+    this.state.mediaRecorder.start();
+    console.log(this.state.mediaRecorder.state);
     console.log("recorder started");
     record.style.background = "red";
 
@@ -113,8 +118,8 @@ export default class Recorder extends Component {
   }
 
   stopOnClick() {
-    mediaRecorder.stop();
-    console.log(mediaRecorder.state);
+    this.state.mediaRecorder.stop();
+    console.log(this.state.mediaRecorder.state);
     console.log("recorder stopped");
     record.style.background = "";
     record.style.color = "";
@@ -151,8 +156,11 @@ export default class Recorder extends Component {
     soundClips.appendChild(clipContainer);
 
     audio.controls = true;
-    var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
-    chunks = [];
+    var blob = new Blob(this.state.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+    //chunks = [];
+    this.setState({
+      chunks: []
+    });
     var audioURL = window.URL.createObjectURL(blob);
     audio.src = audioURL;
     console.log("recorder stopped");
@@ -173,8 +181,11 @@ export default class Recorder extends Component {
     }
   }
 
-  mediaRecorderOnDataAvailable() {
-    chunks.push(e.data);
+  mediaRecorderOnDataAvailable(e) {
+    //chunks.push(e.data);
+    this.setState({
+      chunks: [...chunks, e.data]
+    })
   }
 
   render() {
@@ -182,7 +193,7 @@ export default class Recorder extends Component {
       <section className="main-controls">
         <canvas ref="canvas" className="visualizer"></canvas>
         <div id="buttons">
-          <button className="record" onClick={this.recordOnClick} >Record</button>
+          <button ref="record" className="record" onClick={this.recordOnClick} >Record</button>
           <button className="stop" onClick={this.stopOnClick} >Stop</button>
         </div>
       </section>
