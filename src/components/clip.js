@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { deleteClip } from '../actions/index';
+import { deleteClip, updateClipName } from '../actions/index';
 
 class Clip extends Component {
   constructor() {
@@ -14,14 +14,11 @@ class Clip extends Component {
   }
 
   clipLabelOnClick() {
-    // TODO: update clip name
-    //var existingName = clipLabel.textContent;
-    //var newClipName = prompt('Enter a new name for your sound clip?');
-    //if(newClipName === null) {
-    //  clipLabel.textContent = existingName;
-    //} else {
-    //  clipLabel.textContent = newClipName;
-    //}
+    const { clipName, id } = this.props;
+    const newClipName = prompt('Enter a new name for your sound clip?');
+    if(newClipName !== null && newClipName !== clipName) {
+      this.props.updateClipName(id, newClipName);
+    }
   }
 
   render() {
@@ -30,11 +27,11 @@ class Clip extends Component {
     return (
       <article className="clip">
         <audio controls src={audioURL} />
-        <p>{clipName}</p>
+        <p onClick={this.clipLabelOnClick}>{clipName}</p>
         <button className="delete" onClick={this.deleteButtonOnClick}>Delete</button>
       </article>
     );
   }
 }
 
-export default connect(null, { deleteClip })(Clip);
+export default connect(null, { deleteClip, updateClipName })(Clip);

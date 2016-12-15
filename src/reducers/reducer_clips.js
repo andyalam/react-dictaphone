@@ -1,4 +1,4 @@
-import { CREATE_CLIP, DELETE_CLIP } from '../actions/index';
+import { CREATE_CLIP, DELETE_CLIP, UPDATE_CLIP_NAME } from '../actions/index';
 
 const INITIAL_STATE = [];
 
@@ -10,9 +10,23 @@ export default function(state = INITIAL_STATE, action) {
         id: action.id,
         clipName: action.clipName
       }
-      return [...state, clip ];
+      return [ clip, ...state ];
+
     case DELETE_CLIP:
       return state.filter((clip) => clip.id != action.id);
+
+    case UPDATE_CLIP_NAME:
+      return state.map((clip) => {
+        if (clip.id == action.id) {
+          return {
+            blob: clip.blob,
+            id: clip.id,
+            clipName: action.newName
+          }
+        }
+        return clip;
+      });
+
     default:
       return state;
   }
