@@ -6,7 +6,7 @@ class Clips extends Component {
   render() {
     const clips = this.props.clips.map(clip => {
       return (
-        <Clip blob={clip}/>
+        <Clip key={clip.id} {...clip}/>
       );
     });
 

@@ -1,14 +1,16 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { deleteClip } from '../actions/index';
 
-export default class Clip extends Component {
+class Clip extends Component {
   constructor() {
     super();
+    this.deleteButtonOnClick = this.deleteButtonOnClick.bind(this);
+    this.clipLabelOnClick = this.clipLabelOnClick.bind(this);
   }
 
   deleteButtonOnClick() {
-    // TODO: delete clip, launch action
-    //evtTgt = e.target;
-    //evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode);
+    this.props.deleteClip(this.props.id);
   }
 
   clipLabelOnClick() {
@@ -23,14 +25,16 @@ export default class Clip extends Component {
   }
 
   render() {
-    const { blob } = this.props;
+    const { blob, clipName } = this.props;
     const audioURL = window.URL.createObjectURL(blob);
     return (
       <article className="clip">
         <audio controls src={audioURL} />
-        <p>clipnamehere</p>
-        <button className="delete">Delete</button>
+        <p>{clipName}</p>
+        <button className="delete" onClick={this.deleteButtonOnClick}>Delete</button>
       </article>
     );
   }
 }
+
+export default connect(null, { deleteClip })(Clip);

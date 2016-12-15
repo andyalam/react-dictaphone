@@ -137,7 +137,7 @@ class Recorder extends Component {
     var clipName = prompt('Enter a name for your sound clip?','My unnamed clip');
 
     const blob = new Blob(this.state.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-    this.props.createClip(blob);
+    this.props.createClip(blob, clipName);
 
     // reset chunks
     this.setState({
